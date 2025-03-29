@@ -17,18 +17,19 @@ function loadSounds() {
 
 
 var questions = [
-    {text: "Hackathon",
-    answers: ["A", "B", "H"],
-    correct: "h",
-    speak: "Hackathon"
-    },
+	{text: "Hackathon",
+		answers: ["A", "B", "H"],
+		correct: "h",
+		speak: "Hackathon"
+	},
 	{
+		text: "☁️",
 		type: "reorder",
 		parts: ["Wol", "ke"],
 		correct: "wolke"
 	},
 	{
-	  text: "☁️?",
+	  text: "🌲?",
 	  answers: ["Bus", "Beine", "Baum"],
 	  correct: "Baum"
 	}
@@ -753,20 +754,18 @@ function launchConfetti() {
 	document.getElementById("speech-btn").style.display = "none";
 	document.getElementById("speech-result").textContent = "";
 	const replayBtn = document.getElementById("replay-btn");
-
-	// Always show 🔊 for first question
-	if (index === 0) {
-	  replayBtn.style.display = "inline-block";
-	  replayBtn.onclick = () => speakWord("Hackathon");
-	} else if (q.speak) {
-	  replayBtn.style.display = "inline-block";
-	  replayBtn.onclick = () => speakWord(q.speak);
-	} else {
-	  replayBtn.style.display = "none";
-	}
-	
-  
-	
+ 
+ 	// Always show 🔊 for first question
+ 	if (index === 0) {
+ 	  replayBtn.style.display = "inline-block";
+ 	  replayBtn.onclick = () => speakWord("Hackathon");
+ 	} else if (q.speak) {
+ 	  replayBtn.style.display = "inline-block";
+ 	  replayBtn.onclick = () => speakWord(q.speak);
+ 	} else {
+ 	  replayBtn.style.display = "none";
+ 	}
+ 	
   
 	// Hide/Show drag container
 	const dragContainer = document.getElementById("drag-container");
