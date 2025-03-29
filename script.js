@@ -11,19 +11,18 @@ function loadSounds() {
 
 
 var questions = [
+    {text: "Hackathon",
+    answers: ["A", "B", "H"],
+    correct: "h",
+    speak: "Hackathon"
+    },
 	{
-	  text: "Welche Farbe hat das Wollknäuel?",
-	  answers: ["Blau", "Rot", "Grün"],
-	  correct: "rot"
-	},
-	{
-		text: "Setze die Wortteile zusammen, um das richtige Wort zu bilden.",
 		type: "reorder",
 		parts: ["Wol", "ke"],
 		correct: "wolke"
 	},
 	{
-	  text: "Was ist das?",
+	  text: "☁️?",
 	  answers: ["Bus", "Beine", "Baum"],
 	  correct: "Baum"
 	}
@@ -738,7 +737,7 @@ function launchConfetti() {
 	return "";
   }
   
-  function showQuestion(index) {
+  function 	showQuestion(index) {
 	const q = questions[index];
   
 	document.querySelector("#question-panel p").textContent = q.text;
@@ -748,7 +747,21 @@ function launchConfetti() {
 	// Hide irrelevant buttons
 	document.getElementById("speech-btn").style.display = "none";
 	document.getElementById("speech-result").textContent = "";
-	document.getElementById("replay-btn").style.display = "none";
+	const replayBtn = document.getElementById("replay-btn");
+
+	// Always show 🔊 for first question
+	if (index === 0) {
+	  replayBtn.style.display = "inline-block";
+	  replayBtn.onclick = () => speakWord("Hackathon");
+	} else if (q.speak) {
+	  replayBtn.style.display = "inline-block";
+	  replayBtn.onclick = () => speakWord(q.speak);
+	} else {
+	  replayBtn.style.display = "none";
+	}
+	
+  
+	
   
 	// Hide/Show drag container
 	const dragContainer = document.getElementById("drag-container");
