@@ -657,12 +657,24 @@ function initDesktop() {
 	disableBallFollow = true;
   
 	// Tap to update ball position
-	document.addEventListener("touchstart", () => {
-	  if (ball && ball.threeGroup.visible) {
-		const pos = getBallPos();
-		ball.update(pos.x, pos.y, pos.z);
-	  }
-	});
+	document.addEventListener("touchstart", (e) => {
+		if (!ball || !ball.threeGroup.visible) return;
+	  
+		const touchX = e.touches[0].clientX;
+		const screenCenter = window.innerWidth / 2;
+	  
+		// Decide direction based on touch location
+		const direction = touchX > screenCenter ? 1 : -1;
+		const moveAmount = 5 * direction;
+	  
+		// Move only slightly left/right from current position
+		const currentX = ball.body.position.x;
+		const newX = clamp(currentX + moveAmount, -40, 40);
+	  
+		ball.body.position.x = newX;
+		ball.verts[woolNodes - 1].x = newX; // move bottom node
+	  });
+	  
   
 	// Optional: Also allow desktop-style tap for hybrid devices
 	document.addEventListener("click", () => {
