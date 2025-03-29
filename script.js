@@ -4,12 +4,6 @@ let currentMode = "mcq"; // or "speech"
 var cloud;
 var tree;
 let winSound;
-let isDraggingBall = false;
-let dragOffset = new THREE.Vector3();
-let pointer = new THREE.Vector2();
-let dragPlane = new THREE.Plane();
-let raycaster = new THREE.Raycaster();
-
 
 function loadSounds() {
   winSound = new Audio('mixkit-achievement-bell-600.wav');
@@ -207,16 +201,13 @@ function initScreenAnd3D() {
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize(WIDTH, HEIGHT);
   renderer.shadowMapEnabled = true;
-
-  renderer.domElement.addEventListener("pointerdown", onPointerDown, false);
-  renderer.domElement.addEventListener("pointermove", onPointerMove, false);
-  renderer.domElement.addEventListener("pointerup", onPointerUp, false);
-
   
   container = document.getElementById('world');
   container.appendChild(renderer.domElement);
   
   window.addEventListener('resize', handleWindowResize, false);
+  document.addEventListener('mousemove', handleMouseMove, false);
+  document.addEventListener('touchmove', handleTouchMove, false);
 }
 
 function handleWindowResize() {
@@ -229,6 +220,21 @@ function handleWindowResize() {
   camera.updateProjectionMatrix();
 }
 
+function handleMouseMove(event) {
+  mousePos = {x:event.clientX, y:event.clientY};
+} 
+
+function handleTouchMove(event) {
+	if (event.touches.length === 1) {
+	  event.preventDefault();
+	  const touch = event.touches[0];
+	  mousePos = {
+		x: touch.clientX,
+		y: touch.clientY
+	  };
+	}
+  }
+  
 
 function createLights() {
   globalLight = new THREE.HemisphereLight(0xffffff, 0xffffff, .5)
@@ -268,6 +274,10 @@ function createBall() {
   ball = new Ball();
   ball.threeGroup.visible = false; 
   scene.add(ball.threeGroup);
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+	const fallback = getBallPos();
+	ball.update(fallback.x, fallback.y, fallback.z);
+  }
   
 }
 
@@ -521,49 +531,52 @@ Ball.prototype.receivePower = function(tp, multiplier){
 
 var t=0;
 
-function loop() {
-	render();
-	
-	deltaTime = clock.getDelta();
-	time += deltaTime;
-	
-	t += 0.05;
-	hero.updateTail(time * 2);
-	
-	if (t > 1 && !isDraggingBall) {
-	  const ballPos = getBallPos();
-	  ball.update(ballPos.x, ballPos.y, ballPos.z);
-	}
+function loop(){
+  render();
   
-	if (ball) {
-	  ball.receivePower(hero.transferPower, deltaTime * 80);
-	}
+  deltaTime = clock.getDelta();
+  time += deltaTime;
+  
+  t+=.05;
+  hero.updateTail(time * 2);
+  
+  if (t > 1) {
+	var ballPos = getBallPos();
+	ball.update(ballPos.x, ballPos.y, ballPos.z);
+	ball.receivePower(hero.transferPower, deltaTime * 80);
   
 	if (allowCatToPlay) {
 	  hero.interactWithBall(ball.body.position);
 	}
-  
-	if (cloud && cloud.threeGroup.visible) {
-	  cloud.updateRain();
-	}
-  
-	if (ball && ball.threeGroup.visible) {
-	  console.log("Ball Position:", ball.body.position);
-	}
-  
-	requestAnimationFrame(loop);
+  }
+  if (cloud && cloud.threeGroup.visible) {
+	cloud.updateRain();
   }
   
+
+  requestAnimationFrame(loop);
+  if (ball && ball.threeGroup.visible) {
+	console.log("Ball Position:", ball.body.position);
+  }
+  
+}
+
 
 function getBallPos(){
-	const time = Date.now() * 0.002;
-	const x = Math.sin(time) * 10;
-	const y = 30 + Math.cos(time * 0.8) * 5;
-	const z = ballWallDepth;
-	return new THREE.Vector3(x, y, z);
-  }
+  var vector = new THREE.Vector3();
 
-  
+  vector.set(
+      ( mousePos.x / window.innerWidth ) * 2 - 1, 
+      - ( mousePos.y / window.innerHeight ) * 2 + 1,
+      0.1 );
+
+  vector.unproject( camera );
+  var dir = vector.sub( camera.position ).normalize();
+  var distance = (ballWallDepth - camera.position.z) / dir.z;
+  var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
+  return pos;
+}
+
 function render(){
   if (controls) controls.update();
   renderer.render(scene, camera);
@@ -583,6 +596,11 @@ function init(event){
   loop();
   showQuestion(currentQuestionIndex);
   updateScoreDisplay();
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    allowCatToPlay = true;
+    ball.threeGroup.visible = true;
+    console.log("Mobile detected: enabling cat play & showing ball");
+  }
 
 }
 
@@ -665,7 +683,6 @@ function launchConfetti() {
 		showFeedback('Correct! 🎉', true);
 		allowCatToPlay = true;
 		ball.threeGroup.visible = true;
-		nudgeMouseOnMobile();
 		score++;
 		updateScoreDisplay();
 		if (winSound) {
@@ -726,12 +743,6 @@ function launchConfetti() {
 	  
   }
   
-  function nudgeMouseOnMobile() {
-	if (/Mobi|Android/i.test(navigator.userAgent)) {
-	  mousePos.x += 1;
-	  setTimeout(() => { mousePos.x -= 1; }, 100);
-	}
-  }
   
   
   function getCurrentCorrectAnswer() {
@@ -754,18 +765,20 @@ function launchConfetti() {
 	document.getElementById("speech-btn").style.display = "none";
 	document.getElementById("speech-result").textContent = "";
 	const replayBtn = document.getElementById("replay-btn");
- 
- 	// Always show 🔊 for first question
- 	if (index === 0) {
- 	  replayBtn.style.display = "inline-block";
- 	  replayBtn.onclick = () => speakWord("Hackathon");
- 	} else if (q.speak) {
- 	  replayBtn.style.display = "inline-block";
- 	  replayBtn.onclick = () => speakWord(q.speak);
- 	} else {
- 	  replayBtn.style.display = "none";
- 	}
- 	
+
+	// Always show 🔊 for first question
+	if (index === 0) {
+	  replayBtn.style.display = "inline-block";
+	  replayBtn.onclick = () => speakWord("Hackathon");
+	} else if (q.speak) {
+	  replayBtn.style.display = "inline-block";
+	  replayBtn.onclick = () => speakWord(q.speak);
+	} else {
+	  replayBtn.style.display = "none";
+	}
+	
+  
+	
   
 	// Hide/Show drag container
 	const dragContainer = document.getElementById("drag-container");
@@ -862,48 +875,5 @@ function launchConfetti() {
 	  
 		  wordParts.appendChild(div);
 		});
-	  }
-	  function onPointerDown(event) {
-		if (!ball || !ball.threeGroup.visible) return;
-	  
-		// Convert screen to NDC
-		pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-		pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-	  
-		raycaster.setFromCamera(pointer, camera);
-	  
-		const intersects = raycaster.intersectObject(ball.body, true);
-		if (intersects.length > 0) {
-		  isDraggingBall = true;
-	  
-		  // Create a drag plane aligned with the camera
-		  dragPlane.setFromNormalAndCoplanarPoint(
-			camera.getWorldDirection(new THREE.Vector3()),
-			intersects[0].point
-		  );
-	  
-		  // Calculate offset from ball center to click point
-		  const intersectPoint = intersects[0].point.clone();
-		  dragOffset.copy(ball.body.position).sub(intersectPoint);
-		}
-	  }
-	  
-	  function onPointerMove(event) {
-		if (!isDraggingBall || !ball) return;
-	  
-		pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-		pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-	  
-		raycaster.setFromCamera(pointer, camera);
-	  
-		const intersection = new THREE.Vector3();
-		raycaster.ray.intersectPlane(dragPlane, intersection);
-	  
-		const newPos = intersection.clone().add(dragOffset);
-		ball.update(newPos.x, newPos.y, newPos.z);
-	  }
-	  
-	  function onPointerUp(event) {
-		isDraggingBall = false;
 	  }
 	  
