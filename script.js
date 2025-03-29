@@ -274,6 +274,11 @@ function createBall() {
   ball = new Ball();
   ball.threeGroup.visible = false; 
   scene.add(ball.threeGroup);
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+	const fallback = getBallPos();
+	ball.update(fallback.x, fallback.y, fallback.z);
+  }
+  
 }
 
 document.addEventListener('touchstart', () => {
