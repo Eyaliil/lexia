@@ -10,9 +10,10 @@ var questions = [
 	  correct: "rot"
 	},
 	{
-	  text: "Wie viele Beine hat die Katze?",
-	  answers: ["2", "4", "3"],
-	  correct: "4"
+		text: "Setze die Wortteile zusammen, um das richtige Wort zu bilden.",
+		type: "reorder",
+		parts: ["Wol", "ke"],
+		correct: "wolke"
 	},
 	{
 	  text: "Welche Form hat die Katzennase?",
@@ -706,18 +707,40 @@ function launchConfetti() {
 	const ul = document.querySelector("#question-panel ul");
 	ul.innerHTML = "";
   
+	// Hide irrelevant buttons
 	document.getElementById("speech-btn").style.display = "none";
 	document.getElementById("speech-result").textContent = "";
 	document.getElementById("replay-btn").style.display = "none";
   
-	q.answers.forEach(answer => {
-	  const li = document.createElement("li");
-	  const btn = document.createElement("button");
-	  btn.textContent = answer;
-	  btn.onclick = () => checkAnswer(answer.toLowerCase());
-	  li.appendChild(btn);
-	  ul.appendChild(li);
-	});
+	// Hide/Show drag container
+	const dragContainer = document.getElementById("drag-container");
+	dragContainer.style.display = q.type === "reorder" ? "block" : "none";
+  
+	// Show drag-and-drop for reorder type
+	if (q.type === "reorder") {
+	  renderWordParts(q.parts);
+	} else {
+	  // Regular MCQ
+	  q.answers.forEach(answer => {
+		const li = document.createElement("li");
+		const btn = document.createElement("button");
+		btn.textContent = answer;
+		btn.onclick = () => checkAnswer(answer.toLowerCase());
+		li.appendChild(btn);
+		ul.appendChild(li);
+	  });
+	}
+  
+	// Show or hide cloud
+	if (cloud) {
+	  cloud.threeGroup.visible = (currentQuestionIndex === 1);
+	}
+  
+	if (ball) {
+	  ball.threeGroup.visible = false;
+	}
+	
+  
   
 	// ⛅ Show the cloud if this is question 1 (second one)
 	if (cloud) {
@@ -745,4 +768,57 @@ function launchConfetti() {
 		window.speechSynthesis.speak(utterance);
 	}
 
-  
+	function renderWordParts(parts) {
+		const wordParts = document.getElementById("word-parts");
+		const dropZone = document.getElementById("drop-zone");
+	  
+		wordParts.innerHTML = "";
+		dropZone.innerHTML = "";
+	  
+		// Shuffle word parts
+		const shuffled = [...parts].sort(() => Math.random() - 0.5);
+	  
+		shuffled.forEach(part => {
+		  const div = document.createElement("div");
+		  div.textContent = part;
+		  div.draggable = true;
+		  div.className = "draggable-part";
+		  div.style.padding = "10px";
+		  div.style.border = "1px solid #aaa";
+		  div.style.borderRadius = "8px";
+		  div.style.background = "#fff8dc";
+		  div.style.cursor = "grab";
+	  
+		  div.addEventListener("dragstart", (e) => {
+			e.dataTransfer.setData("text/plain", part);
+		  });
+	  
+		  wordParts.appendChild(div);
+		});
+	  
+		dropZone.ondragover = (e) => e.preventDefault();
+	  
+		dropZone.ondrop = (e) => {
+		  e.preventDefault();
+		  const part = e.dataTransfer.getData("text/plain");
+	  
+		  const partDiv = document.createElement("div");
+		  partDiv.textContent = part;
+		  partDiv.style.padding = "10px";
+		  partDiv.style.border = "1px solid #aaa";
+		  partDiv.style.borderRadius = "8px";
+		  partDiv.style.background = "#d0f0ff";
+		  dropZone.appendChild(partDiv);
+	  
+		  // Remove from wordParts
+		  const toRemove = [...wordParts.children].find(c => c.textContent === part);
+		  if (toRemove) wordParts.removeChild(toRemove);
+	  
+		  // Check if all parts dropped
+		  if (dropZone.children.length === parts.length) {
+			const userWord = [...dropZone.children].map(c => c.textContent).join("").toLowerCase();
+			checkAnswer(userWord);
+		  }
+		};
+	  }
+	  

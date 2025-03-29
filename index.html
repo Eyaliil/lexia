@@ -16,6 +16,7 @@
 <body>
   <header id="header">
     <div id="logo">Lexio</div>
+    <h3>Schnelles Quiz 🧠</h2>
     <div id="user-info">
       <img id="avatar" src="profile_pic.jpg" alt="Avatar" />
       <span id="username">Benutzer123</span>
@@ -27,7 +28,6 @@
 
   <!-- Ein Panel, sie alle zu steuern -->
   <section id="question-panel">
-    <h3>Schnelles Quiz 🧠</h3>
     <p>Welche Farbe hat das Wollknäuel?</p>
     <ul>
       <li><button onclick="checkAnswer('blue')">Blau</button></li>
@@ -36,14 +36,11 @@
     </ul>
     <button id="speech-btn" style="display:none;">🎤 Sprechen</button>
     <button id="replay-btn" style="display:none;">🔊</button>
-
-    <!-- Aussprachefelder (anfangs versteckt) -->
-    <div id="pronunciation-fields" style="display: none;">
-      <div id="word-count"></div>
-      <div id="word-display">•••</div>
-      <p id="transcript"></p>
-      <p id="result-text"></p>
+    <div id="drag-container" style="display:none; margin-top: 10px;">
+      <div id="drop-zone" style="min-height: 50px; border: 2px dashed #aaa; padding: 10px; display: flex; gap: 8px; justify-content: center;"></div>
+      <div id="word-parts" style="margin-top: 10px; display: flex; gap: 10px; justify-content: center;"></div>
     </div>
+    
 
     <p id="speech-result"></p>
     <p id="feedback"></p>
