@@ -2,6 +2,8 @@
 //THREEJS RELATED VARIABLES 
 let currentMode = "mcq"; // or "speech"
 var cloud;
+var tree;
+
 
 var questions = [
 	{
@@ -16,17 +18,17 @@ var questions = [
 		correct: "wolke"
 	},
 	{
-	  text: "Welche Form hat die Katzennase?",
-	  answers: ["Dreieck", "Kreis", "Quadrat"],
-	  correct: "dreieck"
+	  text: "Was ist das?",
+	  answers: ["Bus", "Beine", "Baum"],
+	  correct: "Baum"
 	}
   ];
   var currentQuestionIndex = 0;
   
   const speechQuestions = [
 	{
-	  text: "Sag die Form der Katzennase",
-	  correct: "dreieck"
+	  text: "🗣️ Baum",
+	  correct: "Baum"
 	}
   ];
   
@@ -563,6 +565,7 @@ function init(event){
   createHero();
   createBall();
   createCloud();
+  createTree(); 
   loop();
   showQuestion(currentQuestionIndex);
   updateScoreDisplay();
@@ -575,6 +578,15 @@ function createCloud() {
 	cloud.threeGroup.scale.set(2, 2, 2); // X, Y, Z scale
 	scene.add(cloud.threeGroup);
   }
+  
+  function createTree() {
+	tree = new Tree();
+	tree.threeGroup.position.set(80, -20, 0);
+	tree.threeGroup.scale.set(5,5,5);
+	tree.threeGroup.visible = false; // 👈 Start hidden
+	scene.add(tree.threeGroup);
+  }
+  
   
 
 function launchConfetti() {
@@ -739,7 +751,11 @@ function launchConfetti() {
 	if (ball) {
 	  ball.threeGroup.visible = false;
 	}
-	
+
+	// 🌳 Show tree only for question index 2 (third question)
+	if (tree) {
+		tree.threeGroup.visible = (currentQuestionIndex === 2);
+	}
   
   
 	// ⛅ Show the cloud if this is question 1 (second one)
