@@ -276,6 +276,13 @@ function createBall() {
   scene.add(ball.threeGroup);
 }
 
+document.addEventListener('touchstart', () => {
+	if (ball && ball.threeGroup.visible) {
+	  const ballPos = getBallPos();
+	  ball.update(ballPos.x, ballPos.y, ballPos.z);
+	}
+  });
+  
 // BALL RELATED CODE
 
 
@@ -670,6 +677,7 @@ function launchConfetti() {
 	if (selected === correctAnswer) {
 		showFeedback('Correct! 🎉', true);
 		allowCatToPlay = true;
+		ball.threeGroup.visible = true;
 		score++;
 		updateScoreDisplay();
 		if (winSound) {
