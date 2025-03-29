@@ -25,7 +25,10 @@
   </header>
 
   <div id="world"></div>
-
+  <div class="navigation-controls">
+    <button id="prev-btn" onclick="prevQuestion()">⬅️</button>
+    <button id="next-btn" onclick="nextQuestion()">➡️</button>
+  </div>
   <!-- Ein Panel, sie alle zu steuern -->
   <section id="question-panel">
     <p>Welche Farbe hat das Wollknäuel?</p>
@@ -45,10 +48,5 @@
     <p id="speech-result"></p>
     <p id="feedback"></p>
   </section>
-
-  <div class="navigation-controls">
-    <button id="prev-btn" onclick="prevQuestion()">⬅️</button>
-    <button id="next-btn" onclick="nextQuestion()">➡️</button>
-  </div>
 </body>
 </html>

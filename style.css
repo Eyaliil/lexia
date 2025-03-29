@@ -82,7 +82,7 @@ html, body {
 /* NAVIGATION */
 .navigation-controls {
   position: fixed;
-  bottom: 220px;
+  bottom: 420px;
   width: 100%;
   display: flex;
   justify-content: space-between;
