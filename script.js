@@ -565,22 +565,35 @@ function loop(){
   }
   
 }
+function clamp(val, min, max) {
+	return Math.max(min, Math.min(max, val));
+  }
+  
 
-
-function getBallPos(){
-  var vector = new THREE.Vector3();
-
-  vector.set(
-      ( mousePos.x / window.innerWidth ) * 2 - 1, 
-      - ( mousePos.y / window.innerHeight ) * 2 + 1,
-      0.1 );
-
-  vector.unproject( camera );
-  var dir = vector.sub( camera.position ).normalize();
-  var distance = (ballWallDepth - camera.position.z) / dir.z;
-  var pos = camera.position.clone().add( dir.multiplyScalar( distance ) );
-  return pos;
-}
+  function getBallPos() {
+	var vector = new THREE.Vector3();
+  
+	vector.set(
+	  (mousePos.x / window.innerWidth) * 2 - 1,
+	  -(mousePos.y / window.innerHeight) * 2 + 1,
+	  0.1
+	);
+  
+	vector.unproject(camera);
+	var dir = vector.sub(camera.position).normalize();
+	var distance = (ballWallDepth - camera.position.z) / dir.z;
+	var pos = camera.position.clone().add(dir.multiplyScalar(distance));
+  
+	// 🧠 Clamp values if mobile
+	if (/Mobi|Android/i.test(navigator.userAgent)) {
+	  pos.x = clamp(pos.x, -80, 80);
+	  pos.y = clamp(pos.y, 20, 120); // Keep it above ground and below sky
+	  pos.z = clamp(pos.z, -40, 40);
+	}
+  
+	return pos;
+  }
+  
 
 function render(){
   if (controls) controls.update();
