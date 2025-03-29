@@ -191,7 +191,11 @@ button:active {
   background-color: var(--accent-color);
   border: 2px solid var(--accent-dark);
   color: var(--text-dark);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
 
 /* FEEDBACK */
 .feedback-popup {

@@ -1,33 +1,34 @@
 
 //THREEJS RELATED VARIABLES 
 let currentMode = "mcq"; // or "speech"
+var cloud;
 
 var questions = [
 	{
-	  text: "What is the color of the wool ball?",
-	  answers: ["Blue", "Red", "Green"],
-	  correct: "red"
+	  text: "Welche Farbe hat das Wollknäuel?",
+	  answers: ["Blau", "Rot", "Grün"],
+	  correct: "rot"
 	},
 	{
-	  text: "How many legs does the cat have?",
+	  text: "Wie viele Beine hat die Katze?",
 	  answers: ["2", "4", "3"],
 	  correct: "4"
 	},
 	{
-	  text: "What shape is the cat's nose?",
-	  answers: ["Triangle", "Circle", "Square"],
-	  correct: "triangle"
+	  text: "Welche Form hat die Katzennase?",
+	  answers: ["Dreieck", "Kreis", "Quadrat"],
+	  correct: "dreieck"
 	}
   ];
   var currentQuestionIndex = 0;
-
   
   const speechQuestions = [
 	{
-	  text: "Say the shape of the cat's nose",
-	  correct: "triangle"
+	  text: "Sag die Form der Katzennase",
+	  correct: "dreieck"
 	}
   ];
+  
   
   function initSpeechRecognition(correctAnswer) {
 	const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -39,7 +40,7 @@ var questions = [
 	}
 
 	const recognition = new SpeechRecognition();
-	recognition.lang = "en-US";
+	recognition.lang = "de-DE";
 	recognition.interimResults = false;
 	recognition.continuous = false;
 
@@ -523,6 +524,9 @@ function loop(){
 	  hero.interactWithBall(ball.body.position);
 	}
   }
+  if (cloud && cloud.threeGroup.visible) {
+	cloud.updateRain();
+  }
   
 
   requestAnimationFrame(loop);
@@ -557,11 +561,20 @@ function init(event){
   createFloor()
   createHero();
   createBall();
+  createCloud();
   loop();
   showQuestion(currentQuestionIndex);
   updateScoreDisplay();
 
 }
+
+function createCloud() {
+	cloud = new Cloud();
+	cloud.threeGroup.position.set(0, 150, 40);
+	cloud.threeGroup.scale.set(2, 2, 2); // X, Y, Z scale
+	scene.add(cloud.threeGroup);
+  }
+  
 
 function launchConfetti() {
 	const confettiGroup = new THREE.Group();
@@ -622,24 +635,29 @@ function launchConfetti() {
 	const correctAnswer = getCurrentCorrectAnswer().toLowerCase();
   
 	if (selected === correctAnswer) {
-	  showFeedback('Correct! 🎉', true);
-	  allowCatToPlay = true;
-	  score++;
-	  updateScoreDisplay();
-  
-	  if (hero && typeof hero.clap === 'function') {
-		hero.clap();
-		hero.celebrate();
-	  }
-  
-	  if (ball) {
-		ball.threeGroup.visible = true; // 👈 Show the ball when answer is correct
-	  }
-  
-	} else {
-	  showFeedback('Nope! Try again.', false);
-	  allowCatToPlay = false;
-	}
+		showFeedback('Correct! 🎉', true);
+		allowCatToPlay = true;
+		score++;
+		updateScoreDisplay();
+	  
+		if (hero && typeof hero.clap === 'function') {
+		  hero.clap();
+		  hero.celebrate();
+		}
+	  
+		if (ball) {
+		  ball.threeGroup.visible = true;
+		}
+	  
+		// Hide cloud if it's question 1
+		if (currentQuestionIndex === 1 && cloud) {
+		  cloud.threeGroup.visible = false;
+		}
+	  
+	  } else {
+		showFeedback('Nope! Try again.', false);
+		allowCatToPlay = false;
+	  }x	  
   }
   
   
@@ -657,8 +675,12 @@ function launchConfetti() {
 	// Show speech button
 	document.getElementById("speech-btn").style.display = "inline-block";
 	document.getElementById("speech-result").textContent = "";
-  
+	document.getElementById("replay-btn").style.display = "inline-block";
+	document.getElementById("replay-btn").onclick = () => speakWord(q.correct);
+
+	// Start listening when the user clicks
 	document.getElementById("speech-btn").onclick = () => initSpeechRecognition(q.correct);
+
 
 	if (ball) {
 		ball.threeGroup.visible = false;
@@ -681,12 +703,12 @@ function launchConfetti() {
 	const q = questions[index];
   
 	document.querySelector("#question-panel p").textContent = q.text;
-  
 	const ul = document.querySelector("#question-panel ul");
 	ul.innerHTML = "";
   
 	document.getElementById("speech-btn").style.display = "none";
 	document.getElementById("speech-result").textContent = "";
+	document.getElementById("replay-btn").style.display = "none";
   
 	q.answers.forEach(answer => {
 	  const li = document.createElement("li");
@@ -697,12 +719,30 @@ function launchConfetti() {
 	  ul.appendChild(li);
 	});
   
-	// Optional: hide feedback
-	document.getElementById("feedback").textContent = "";
+	// ⛅ Show the cloud if this is question 1 (second one)
+	if (cloud) {
+	  cloud.threeGroup.visible = (currentQuestionIndex === 1);
+	}
   
-	// 👇 Add this to hide the ball when a new question loads
 	if (ball) {
 	  ball.threeGroup.visible = false;
 	}
   }
+  
+
+	function speakWord(word) {
+		const utterance = new SpeechSynthesisUtterance(word);
+		const voices = window.speechSynthesis.getVoices();
+		const germanVoice = voices.find(v => v.lang === "de-DE" && v.name.includes("Marlene"));
+		if (germanVoice) {
+			utterance.voice = germanVoice;
+		} else {
+			console.warn("German voice not found. Using default.");
+		}
+	
+
+		utterance.lang = "de-DE";
+		window.speechSynthesis.speak(utterance);
+	}
+
   
