@@ -4,6 +4,8 @@ let currentMode = "mcq"; // or "speech"
 var cloud;
 var tree;
 let winSound;
+let disableBallFollow = false;
+
 
 function loadSounds() {
   winSound = new Audio('mixkit-achievement-bell-600.wav');
@@ -539,17 +541,22 @@ function loop(){
   hero.updateTail(time * 2);
   
   if (t > 1) {
-	var ballPos = getBallPos();
-	ball.update(ballPos.x, ballPos.y, ballPos.z);
+	if (!disableBallFollow) {
+	  const ballPos = getBallPos();
+	  ball.update(ballPos.x, ballPos.y, ballPos.z);
+	}
+  
 	ball.receivePower(hero.transferPower, deltaTime * 80);
   
 	if (allowCatToPlay) {
 	  hero.interactWithBall(ball.body.position);
 	}
   }
+  
   if (cloud && cloud.threeGroup.visible) {
 	cloud.updateRain();
   }
+  
   
 
   requestAnimationFrame(loop);
@@ -616,23 +623,43 @@ function initDesktop() {
 	createFloor();
 	loadSounds();
 	createHero();
-	createBall(); // still use it, but show it early
+	createBall();
 	createCloud();
 	createTree();
 	loop();
 	showQuestion(currentQuestionIndex);
 	updateScoreDisplay();
   
-	// Mobile-specific adjustments
 	allowCatToPlay = true;
+  
 	if (ball) {
 	  ball.threeGroup.visible = true;
+  
+	  // Set initial position
 	  const fallback = getBallPos();
 	  ball.update(fallback.x, fallback.y, fallback.z);
 	}
   
-	// You can also simplify controls or reduce 3D complexity here if needed
+	// Disable ball follow behavior for mobile
+	disableBallFollow = true;
+  
+	// Tap to update ball position
+	document.addEventListener("touchstart", () => {
+	  if (ball && ball.threeGroup.visible) {
+		const pos = getBallPos();
+		ball.update(pos.x, pos.y, pos.z);
+	  }
+	});
+  
+	// Optional: Also allow desktop-style tap for hybrid devices
+	document.addEventListener("click", () => {
+	  if (ball && ball.threeGroup.visible) {
+		const pos = getBallPos();
+		ball.update(pos.x, pos.y, pos.z);
+	  }
+	});
   }
+  
   
 function createCloud() {
 	cloud = new Cloud();
