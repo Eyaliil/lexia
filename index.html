@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ThreeJS Wool Ball</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="libs/three.min.js"></script>
+  <script src="libs/TweenMax.min.js"></script>
+  <script src="OrbitControls.js"></script>
+  <script src="Cat.js"></script>
+  <script src="script.js" defer></script>
+</head>
+
+<body>
+  <header id="header">
+    <div id="logo">Lexio</div>
+    <div id="user-info">
+      <img id="avatar" src="profile_pic.jpg" alt="avatar" />
+      <span id="username">User123</span>
+      <span id="score-display">Score: 0</span>
+    </div>
+  </header>
+
+  <div id="world"></div>
+
+  <!-- One panel to rule them all -->
+  <section id="question-panel">
+    <h3>Quick Quiz 🧠</h3>
+    <p>What is the color of the wool ball?</p>
+    <ul>
+      <li><button onclick="checkAnswer('blue')">Blue</button></li>
+      <li><button onclick="checkAnswer('red')">Red</button></li>
+      <li><button onclick="checkAnswer('green')">Green</button></li>
+    </ul>
+    <button id="speech-btn" style="display:none;">🎤 Say the word</button>
+
+    <!-- Pronunciation fields (initially hidden) -->
+    <div id="pronunciation-fields" style="display: none;">
+      <div id="word-count"></div>
+      <div id="word-display">•••</div>
+      <button id="speak-btn">🔊 Listen</button>
+      <button id="listen-btn">🎤 Say the Word</button>
+      <p id="transcript"></p>
+      <p id="result-text"></p>
+    </div>
+
+    <p id="speech-result"></p>
+    <p id="feedback"></p>
+  </section>
+
+  <div class="navigation-controls">
+    <button id="prev-btn" onclick="prevQuestion()">⬅️</button>
+    <button id="next-btn" onclick="nextQuestion()">➡️</button>
+  </div>
+</body>
+</html>
