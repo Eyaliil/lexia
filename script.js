@@ -225,11 +225,17 @@ function handleMouseMove(event) {
 } 
 
 function handleTouchMove(event) {
-  if (event.touches.length == 1) {
-    event.preventDefault();
-    mousePos = {x:event.touches[0].pageX, y:event.touches[0].pageY};
+	if (event.touches.length === 1) {
+	  event.preventDefault();
+	  const touch = event.touches[0];
+  
+	  mousePos = {
+		x: touch.clientX,
+		y: touch.clientY
+	  };
+	}
   }
-}
+  
 
 function createLights() {
   globalLight = new THREE.HemisphereLight(0xffffff, 0xffffff, .5)
@@ -524,7 +530,7 @@ function loop(){
   hero.updateTail(time * 2);
   
   if (t > 1) {
-	var ballPos = getBallPos();
+	const ballPos = getBallPos();
 	ball.update(ballPos.x, ballPos.y, ballPos.z);
 	ball.receivePower(hero.transferPower, deltaTime * 80);
   
