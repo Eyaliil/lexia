@@ -271,15 +271,20 @@ function createHero() {
 }
 
 function createBall() {
-  ball = new Ball();
-  ball.threeGroup.visible = false; 
-  scene.add(ball.threeGroup);
-  if (/Mobi|Android/i.test(navigator.userAgent)) {
+	ball = new Ball();
+	scene.add(ball.threeGroup);
+  
+	// Ensure visible on mobile right away
+	if (/Mobi|Android/i.test(navigator.userAgent)) {
+	  ball.threeGroup.visible = true;
+	} else {
+	  ball.threeGroup.visible = false;
+	}
+  
 	const fallback = getBallPos();
 	ball.update(fallback.x, fallback.y, fallback.z);
   }
   
-}
 
 document.addEventListener('touchstart', () => {
 	if (ball && ball.threeGroup.visible) {
@@ -591,6 +596,10 @@ function init(event){
   loadSounds();
   createHero();
   createBall();
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+	const fallback = getBallPos();
+	ball.update(fallback.x, fallback.y, fallback.z);
+  }
   createCloud();
   createTree(); 
   loop();
