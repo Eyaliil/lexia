@@ -601,15 +601,20 @@ function render(){
 }
 
 window.addEventListener('load', init, false);
+const qr = document.getElementById('qr-code');
 
 function init(event){
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
 if (isMobile) {
 	console.log("📱 Mobile detected - loading mobile version");
+	console.log("📱 Mobile detected - hiding QR code");
+    if (qr) qr.style.display = 'none';
 	initMobile();
 } else {
 	console.log("💻 Desktop detected - loading desktop version");
+	console.log("💻 Desktop detected - showing QR code");
+    if (qr) qr.style.display = 'flex'; // or 'block' if not using flexbox
 	initDesktop();
 }
 
