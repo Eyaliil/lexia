@@ -271,20 +271,13 @@ function createHero() {
 }
 
 function createBall() {
-	ball = new Ball();
-	scene.add(ball.threeGroup);
+  ball = new Ball();
+  ball.threeGroup.visible = false; 
+  scene.add(ball.threeGroup);
+
   
-	// Ensure visible on mobile right away
-	if (/Mobi|Android/i.test(navigator.userAgent)) {
-	  ball.threeGroup.visible = true;
-	} else {
-	  ball.threeGroup.visible = false;
-	}
-  
-	const fallback = getBallPos();
-	ball.update(fallback.x, fallback.y, fallback.z);
-  }
-  
+}
+
 
 document.addEventListener('touchstart', () => {
 	if (ball && ball.threeGroup.visible) {
@@ -590,29 +583,57 @@ function render(){
 window.addEventListener('load', init, false);
 
 function init(event){
-  initScreenAnd3D();
-  createLights();
-  createFloor();
-  loadSounds();
-  createHero();
-  createBall();
-  if (/Mobi|Android/i.test(navigator.userAgent)) {
-	const fallback = getBallPos();
-	ball.update(fallback.x, fallback.y, fallback.z);
-  }
-  createCloud();
-  createTree(); 
-  loop();
-  showQuestion(currentQuestionIndex);
-  updateScoreDisplay();
-  if (/Mobi|Android/i.test(navigator.userAgent)) {
-    allowCatToPlay = true;
-    ball.threeGroup.visible = true;
-    console.log("Mobile detected: enabling cat play & showing ball");
-  }
+const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+if (isMobile) {
+	console.log("📱 Mobile detected - loading mobile version");
+	initMobile();
+} else {
+	console.log("💻 Desktop detected - loading desktop version");
+	initDesktop();
+}
+
 
 }
 
+function initDesktop() {
+	initScreenAnd3D();
+	createLights();
+	createFloor();
+	loadSounds();
+	createHero();
+	createBall();
+	createCloud();
+	createTree();
+	loop();
+	showQuestion(currentQuestionIndex);
+	updateScoreDisplay();
+  }
+  
+  function initMobile() {
+	initScreenAnd3D();
+	createLights();
+	createFloor();
+	loadSounds();
+	createHero();
+	createBall(); // still use it, but show it early
+	createCloud();
+	createTree();
+	loop();
+	showQuestion(currentQuestionIndex);
+	updateScoreDisplay();
+  
+	// Mobile-specific adjustments
+	allowCatToPlay = true;
+	if (ball) {
+	  ball.threeGroup.visible = true;
+	  const fallback = getBallPos();
+	  ball.update(fallback.x, fallback.y, fallback.z);
+	}
+  
+	// You can also simplify controls or reduce 3D complexity here if needed
+  }
+  
 function createCloud() {
 	cloud = new Cloud();
 	cloud.threeGroup.position.set(0, 150, 40);
