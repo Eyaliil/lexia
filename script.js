@@ -225,11 +225,16 @@ function handleMouseMove(event) {
 } 
 
 function handleTouchMove(event) {
-  if (event.touches.length == 1) {
-    event.preventDefault();
-    mousePos = {x:event.touches[0].pageX, y:event.touches[0].pageY};
+	if (event.touches.length === 1) {
+	  event.preventDefault();
+	  const touch = event.touches[0];
+	  mousePos = {
+		x: touch.clientX,
+		y: touch.clientY
+	  };
+	}
   }
-}
+  
 
 function createLights() {
   globalLight = new THREE.HemisphereLight(0xffffff, 0xffffff, .5)
@@ -538,6 +543,10 @@ function loop(){
   
 
   requestAnimationFrame(loop);
+  if (ball && ball.threeGroup.visible) {
+	console.log("Ball Position:", ball.body.position);
+  }
+  
 }
 
 
@@ -822,18 +831,15 @@ function launchConfetti() {
 		  div.style.borderRadius = "8px";
 		  div.style.background = "#fff8dc";
 		  div.style.cursor = "pointer";
-		  div.style.userSelect = "none";
-		  div.style.transition = "transform 0.2s";
-		  div.style.touchAction = "manipulation";
 	  
-		  // 👇 Works for both desktop and mobile
+		  // ✅ Mobile-friendly interaction
 		  div.addEventListener("click", () => {
 			const clone = div.cloneNode(true);
 			clone.style.background = "#d0f0ff";
 			dropZone.appendChild(clone);
 			wordParts.removeChild(div);
 	  
-			// Check if completed
+			// ✅ Check answer after all parts dropped
 			if (dropZone.children.length === parts.length) {
 			  const userWord = [...dropZone.children].map(c => c.textContent).join("").toLowerCase();
 			  checkAnswer(userWord);
@@ -843,5 +849,4 @@ function launchConfetti() {
 		  wordParts.appendChild(div);
 		});
 	  }
-	  
 	  
