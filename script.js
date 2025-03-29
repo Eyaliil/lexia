@@ -227,13 +227,13 @@ function handleMouseMove(event) {
 function handleTouchMove(event) {
 	if (event.touches.length === 1) {
 	  event.preventDefault();
-	  const touch = event.touches[0];
 	  mousePos = {
-		x: touch.clientX,
-		y: touch.clientY
+		x: event.touches[0].clientX,
+		y: event.touches[0].clientY
 	  };
 	}
   }
+  
   
 
 function createLights() {
@@ -274,10 +274,6 @@ function createBall() {
   ball = new Ball();
   ball.threeGroup.visible = false; 
   scene.add(ball.threeGroup);
-  if (/Mobi|Android/i.test(navigator.userAgent)) {
-	const fallback = getBallPos();
-	ball.update(fallback.x, fallback.y, fallback.z);
-  }
   
 }
 
@@ -596,11 +592,6 @@ function init(event){
   loop();
   showQuestion(currentQuestionIndex);
   updateScoreDisplay();
-  if (/Mobi|Android/i.test(navigator.userAgent)) {
-    allowCatToPlay = true;
-    ball.threeGroup.visible = true;
-    console.log("Mobile detected: enabling cat play & showing ball");
-  }
 
 }
 
@@ -683,6 +674,7 @@ function launchConfetti() {
 		showFeedback('Correct! 🎉', true);
 		allowCatToPlay = true;
 		ball.threeGroup.visible = true;
+		nudgeMouseOnMobile();
 		score++;
 		updateScoreDisplay();
 		if (winSound) {
@@ -743,6 +735,12 @@ function launchConfetti() {
 	  
   }
   
+  function nudgeMouseOnMobile() {
+	if (/Mobi|Android/i.test(navigator.userAgent)) {
+	  mousePos.x += 1;
+	  setTimeout(() => { mousePos.x -= 1; }, 100);
+	}
+  }
   
   
   function getCurrentCorrectAnswer() {
