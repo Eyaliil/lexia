@@ -3,6 +3,11 @@
 let currentMode = "mcq"; // or "speech"
 var cloud;
 var tree;
+let winSound;
+
+function loadSounds() {
+  winSound = new Audio('mixkit-achievement-bell-600.wav');
+}
 
 
 var questions = [
@@ -561,7 +566,8 @@ window.addEventListener('load', init, false);
 function init(event){
   initScreenAnd3D();
   createLights();
-  createFloor()
+  createFloor();
+  loadSounds();
   createHero();
   createBall();
   createCloud();
@@ -569,6 +575,11 @@ function init(event){
   loop();
   showQuestion(currentQuestionIndex);
   updateScoreDisplay();
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    allowCatToPlay = true;
+    ball.threeGroup.visible = true;
+    console.log("Mobile detected: enabling cat play & showing ball");
+  }
 
 }
 
@@ -652,6 +663,10 @@ function launchConfetti() {
 		allowCatToPlay = true;
 		score++;
 		updateScoreDisplay();
+		if (winSound) {
+			winSound.currentTime = 0; // restart the sound
+			winSound.play(); // 🔊 play it
+		  }
 	  
 		if (hero && typeof hero.clap === 'function') {
 		  hero.clap();
@@ -670,8 +685,13 @@ function launchConfetti() {
 	  } else {
 		showFeedback('Nope! Try again.', false);
 		allowCatToPlay = false;
-	  }x	  
+	  
+	  const q = questions[currentQuestionIndex];
+ 	  if (q.type === "reorder") {
+        setTimeout(() => renderWordParts(q.parts), 500); // slight delay for feedback effect
+      }
   }
+}
   
   
 
