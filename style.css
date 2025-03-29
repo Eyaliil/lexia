@@ -49,17 +49,24 @@ html, body {
   position: fixed;
   bottom: 20px;
   left: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: none; /* hidden by default */
   z-index: 1000;
-  /* Removed background, padding, border-radius, and shadow */
 }
 
 #qr-code img {
-  width: 120px;   /* Increased size */
+  width: 120px;
   height: 120px;
 }
+
+/* Show only on desktop */
+@media screen and (min-width: 768px) {
+  #qr-code {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
 
 
 
