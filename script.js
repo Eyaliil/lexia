@@ -225,17 +225,11 @@ function handleMouseMove(event) {
 } 
 
 function handleTouchMove(event) {
-	if (event.touches.length === 1) {
-	  event.preventDefault();
-	  const touch = event.touches[0];
-  
-	  mousePos = {
-		x: touch.clientX,
-		y: touch.clientY
-	  };
-	}
+  if (event.touches.length == 1) {
+    event.preventDefault();
+    mousePos = {x:event.touches[0].pageX, y:event.touches[0].pageY};
   }
-  
+}
 
 function createLights() {
   globalLight = new THREE.HemisphereLight(0xffffff, 0xffffff, .5)
@@ -530,7 +524,7 @@ function loop(){
   hero.updateTail(time * 2);
   
   if (t > 1) {
-	const ballPos = getBallPos();
+	var ballPos = getBallPos();
 	ball.update(ballPos.x, ballPos.y, ballPos.z);
 	ball.receivePower(hero.transferPower, deltaTime * 80);
   
@@ -817,50 +811,37 @@ function launchConfetti() {
 		wordParts.innerHTML = "";
 		dropZone.innerHTML = "";
 	  
-		// Shuffle word parts
 		const shuffled = [...parts].sort(() => Math.random() - 0.5);
 	  
 		shuffled.forEach(part => {
 		  const div = document.createElement("div");
 		  div.textContent = part;
-		  div.draggable = true;
 		  div.className = "draggable-part";
 		  div.style.padding = "10px";
 		  div.style.border = "1px solid #aaa";
 		  div.style.borderRadius = "8px";
 		  div.style.background = "#fff8dc";
-		  div.style.cursor = "grab";
+		  div.style.cursor = "pointer";
+		  div.style.userSelect = "none";
+		  div.style.transition = "transform 0.2s";
+		  div.style.touchAction = "manipulation";
 	  
-		  div.addEventListener("dragstart", (e) => {
-			e.dataTransfer.setData("text/plain", part);
+		  // 👇 Works for both desktop and mobile
+		  div.addEventListener("click", () => {
+			const clone = div.cloneNode(true);
+			clone.style.background = "#d0f0ff";
+			dropZone.appendChild(clone);
+			wordParts.removeChild(div);
+	  
+			// Check if completed
+			if (dropZone.children.length === parts.length) {
+			  const userWord = [...dropZone.children].map(c => c.textContent).join("").toLowerCase();
+			  checkAnswer(userWord);
+			}
 		  });
 	  
 		  wordParts.appendChild(div);
 		});
-	  
-		dropZone.ondragover = (e) => e.preventDefault();
-	  
-		dropZone.ondrop = (e) => {
-		  e.preventDefault();
-		  const part = e.dataTransfer.getData("text/plain");
-	  
-		  const partDiv = document.createElement("div");
-		  partDiv.textContent = part;
-		  partDiv.style.padding = "10px";
-		  partDiv.style.border = "1px solid #aaa";
-		  partDiv.style.borderRadius = "8px";
-		  partDiv.style.background = "#d0f0ff";
-		  dropZone.appendChild(partDiv);
-	  
-		  // Remove from wordParts
-		  const toRemove = [...wordParts.children].find(c => c.textContent === part);
-		  if (toRemove) wordParts.removeChild(toRemove);
-	  
-		  // Check if all parts dropped
-		  if (dropZone.children.length === parts.length) {
-			const userWord = [...dropZone.children].map(c => c.textContent).join("").toLowerCase();
-			checkAnswer(userWord);
-		  }
-		};
 	  }
+	  
 	  
