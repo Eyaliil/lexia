@@ -615,24 +615,34 @@ function initDesktop() {
 	// Disable ball follow behavior for mobile
 	disableBallFollow = true;
   
-	// Tap to update ball position
+	let isTouching = false;
+	let lastTouchX = 0;
+
 	document.addEventListener("touchstart", (e) => {
-		if (!ball) return;
-	  
+		if (!ball || !e.touches.length) return;
+		isTouching = true;
+		lastTouchX = e.touches[0].clientX;
+	});
+
+	document.addEventListener("touchmove", (e) => {
+		if (!isTouching || !e.touches.length) return;
+
 		const touchX = e.touches[0].clientX;
-		const screenCenter = window.innerWidth / 2;
-	  
-		// Decide direction based on touch location
-		const direction = touchX > screenCenter ? 1 : -1;
-		const moveAmount = 5 * direction;
-	  
-		// Move only slightly left/right from current position
+		const dx = touchX - lastTouchX;
+		lastTouchX = touchX;
+
 		const currentX = ball.body.position.x;
-		const newX = clamp(currentX + moveAmount, -40, 40);
-	  
+		const sensitivity = 0.6; // lower = slower
+		const newX = clamp(currentX + dx * sensitivity, -40, 40);
+
 		ball.body.position.x = newX;
-		ball.verts[woolNodes - 1].x = newX; // move bottom node
-	  });
+		ball.verts[woolNodes - 1].x = newX;
+	});
+
+	document.addEventListener("touchend", () => {
+		isTouching = false;
+	});
+
 	  
 
   }
