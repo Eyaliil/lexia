@@ -615,36 +615,32 @@ function initDesktop() {
 	// Disable ball follow behavior for mobile
 	disableBallFollow = true;
   
-	let isTouching = false;
-	let lastTouchX = 0;
-
-	document.addEventListener("touchstart", (e) => {
-		if (!ball || !e.touches.length) return;
-		isTouching = true;
-		lastTouchX = e.touches[0].clientX;
-	});
-
 	document.addEventListener("touchmove", (e) => {
-		if (!isTouching || !e.touches.length) return;
-
-		const touchX = e.touches[0].clientX;
-		const dx = touchX - lastTouchX;
-		lastTouchX = touchX;
-
-		const currentX = ball.body.position.x;
-		const sensitivity = 0.6; // lower = slower
-		const newX = clamp(currentX + dx * sensitivity, -40, 40);
-
-		ball.body.position.x = newX;
-		ball.verts[woolNodes - 1].x = newX;
-	});
-
-	document.addEventListener("touchend", () => {
-		isTouching = false;
-	});
-
+		if (!ball || !e.touches.length) return;
 	  
-
+		e.preventDefault(); // prevent scrolling
+		const touch = e.touches[0];
+	  
+		const touchVector = new THREE.Vector3(
+		  (touch.clientX / window.innerWidth) * 2 - 1,
+		  -(touch.clientY / window.innerHeight) * 2 + 1,
+		  0.1
+		);
+	  
+		touchVector.unproject(camera);
+		const dir = touchVector.sub(camera.position).normalize();
+		const distance = (ballWallDepth - camera.position.z) / dir.z;
+		const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+	  
+		// Clamp to safe zone
+		pos.x = clamp(pos.x, -80, 80);
+		pos.y = clamp(pos.y, 20, 120);
+		pos.z = clamp(pos.z, -40, 40);
+	  
+		// Smoothly update ball position
+		ball.update(pos.x, pos.y, pos.z);
+	  });
+	  
   }
   
   
