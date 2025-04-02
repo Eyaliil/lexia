@@ -10,6 +10,33 @@ let disableBallFollow = false;
 function loadSounds() {
   winSound = new Audio('mixkit-achievement-bell-600.wav');
 }
+let hasMouseMoved = false;
+
+document.addEventListener('mousemove', (e) => {
+  hasMouseMoved = true;
+  mousePos = { x: e.clientX, y: e.clientY };
+});
+
+document.addEventListener('mousemove', (e) => {
+	if (!ball) return;
+  
+	// Convert screen mouse position to 3D world coordinates
+	const vector = new THREE.Vector3(
+	  (e.clientX / window.innerWidth) * 2 - 1,
+	  -(e.clientY / window.innerHeight) * 2 + 1,
+	  0.1 // or 0.5 depending on depth
+	);
+  
+	vector.unproject(camera);
+	const dir = vector.sub(camera.position).normalize();
+	const distance = (ballWallDepth - camera.position.z) / dir.z;
+	const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+  
+	// Update the ball’s position directly
+	ball.update(pos.x, pos.y, pos.z);
+  });
+  
+
 
 
 var questions = [
@@ -103,8 +130,6 @@ var questions = [
 		alert("🎉 You've completed all questions!");
 	  }
 	}
-  
-	allowCatToPlay = false;
   }
   
   function showFeedback(message, isCorrect) {
@@ -141,8 +166,6 @@ var questions = [
 	  currentQuestionIndex = questions.length - 1;
 	  showQuestion(currentQuestionIndex);
 	}
-  
-	allowCatToPlay = false;
   }
   
 
@@ -174,7 +197,6 @@ var score = 0;
 
 
 //INIT THREE JS, SCREEN AND MOUSE EVENTS
-var allowCatToPlay = false;
 
 function initScreenAnd3D() {
   
@@ -202,14 +224,12 @@ function initScreenAnd3D() {
   renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize(WIDTH, HEIGHT);
-  renderer.shadowMapEnabled = true;
+  renderer.shadowMapEnabled = false;
   
   container = document.getElementById('world');
   container.appendChild(renderer.domElement);
   
   window.addEventListener('resize', handleWindowResize, false);
-  document.addEventListener('mousemove', handleMouseMove, false);
-  document.addEventListener('touchmove', handleTouchMove, false);
 }
 
 function handleWindowResize() {
@@ -222,9 +242,6 @@ function handleWindowResize() {
   camera.updateProjectionMatrix();
 }
 
-function handleMouseMove(event) {
-  mousePos = {x:event.clientX, y:event.clientY};
-} 
 
 function handleTouchMove(event) {
 	if (event.touches.length === 1) {
@@ -274,24 +291,12 @@ function createHero() {
 
 function createBall() {
   ball = new Ball();
-  ball.threeGroup.visible = false; 
   scene.add(ball.threeGroup);
 
   
 }
 
-
-document.addEventListener('touchstart', () => {
-	if (ball && ball.threeGroup.visible) {
-	  const ballPos = getBallPos();
-	  ball.update(ballPos.x, ballPos.y, ballPos.z);
-	}
-  });
-  
-// BALL RELATED CODE
-
-
-var woolNodes = 10,
+var woolNodes = 4,
 	woolSegLength = 2,
 	gravity = -.8,
 	accuracy =1;
@@ -523,76 +528,21 @@ Ball.prototype.update = function(posX, posY, posZ){
 Ball.prototype.receivePower = function(tp, multiplier){
 	this.verts[woolNodes-1].add_force(tp.x * multiplier, tp.y * multiplier);
 }
+  
+var t = 0;
+const fixedBallPosition = new THREE.Vector3(10, 80, 0); // set this once
 
-// End of the code inspired by dissmulate
-
-
-// Make everything work together :
-
-var t=0;
-
-function loop(){
+function loop() {
   render();
-  
-  deltaTime = clock.getDelta();
-  time += deltaTime;
-  
-  t+=.05;
-  hero.updateTail(time * 2);
-  
-  if (t > 1) {
-	if (!disableBallFollow) {
-	  const ballPos = getBallPos();
-	  ball.update(ballPos.x, ballPos.y, ballPos.z);
-	}
-  
-	ball.receivePower(hero.transferPower, deltaTime * 80);
-  
-	if (allowCatToPlay) {
-	  hero.interactWithBall(ball.body.position);
-	}
-  }
-  
-  if (cloud && cloud.threeGroup.visible) {
-	cloud.updateRain();
-  }
-  
+  hero.interactWithBall(ball.body.position);
+  requestAnimationFrame(loop);
+}
+
   
 
-  requestAnimationFrame(loop);
-  if (ball && ball.threeGroup.visible) {
-	console.log("Ball Position:", ball.body.position);
-  }
-  
-}
 function clamp(val, min, max) {
 	return Math.max(min, Math.min(max, val));
-  }
-  
-
-  function getBallPos() {
-	var vector = new THREE.Vector3();
-  
-	vector.set(
-	  (mousePos.x / window.innerWidth) * 2 - 1,
-	  -(mousePos.y / window.innerHeight) * 2 + 1,
-	  0.1
-	);
-  
-	vector.unproject(camera);
-	var dir = vector.sub(camera.position).normalize();
-	var distance = (ballWallDepth - camera.position.z) / dir.z;
-	var pos = camera.position.clone().add(dir.multiplyScalar(distance));
-  
-	// 🧠 Clamp values if mobile
-	if (/Mobi|Android/i.test(navigator.userAgent)) {
-	  pos.x = clamp(pos.x, -80, 80);
-	  pos.y = clamp(pos.y, 20, 120); // Keep it above ground and below sky
-	  pos.z = clamp(pos.z, -40, 40);
-	}
-  
-	return pos;
-  }
+}
   
 
 function render(){
@@ -607,13 +557,9 @@ function init(event){
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
 if (isMobile) {
-	console.log("📱 Mobile detected - loading mobile version");
-	console.log("📱 Mobile detected - hiding QR code");
     if (qr) qr.style.display = 'none';
 	initMobile();
 } else {
-	console.log("💻 Desktop detected - loading desktop version");
-	console.log("💻 Desktop detected - showing QR code");
     if (qr) qr.style.display = 'flex'; // or 'block' if not using flexbox
 	initDesktop();
 }
@@ -630,10 +576,23 @@ function initDesktop() {
 	createBall();
 	createCloud();
 	createTree();
+	const fixedBallPosition = new THREE.Vector3(0, 80, 0); // or whatever you want
+	ball.update(fixedBallPosition.x, fixedBallPosition.y, fixedBallPosition.z);
+	
+  
+	if (ball) {
+	  
+	  // 👇 SAFE DEFAULT POSITION
+	  const defaultBallPos = new THREE.Vector3(0, 80, 0); 
+	  ball.update(defaultBallPos.x, defaultBallPos.y, defaultBallPos.z);
+	}
+  
 	loop();
 	showQuestion(currentQuestionIndex);
 	updateScoreDisplay();
   }
+  
+
   
   function initMobile() {
 	initScreenAnd3D();
@@ -648,13 +607,8 @@ function initDesktop() {
 	showQuestion(currentQuestionIndex);
 	updateScoreDisplay();
   
-	allowCatToPlay = true;
-  
-	if (ball) {
-	  ball.threeGroup.visible = true;
-  
+	if (ball){
 	  // Set initial position
-	  const fallback = getBallPos();
 	  ball.update(fallback.x, fallback.y, fallback.z);
 	}
   
@@ -663,7 +617,7 @@ function initDesktop() {
   
 	// Tap to update ball position
 	document.addEventListener("touchstart", (e) => {
-		if (!ball || !ball.threeGroup.visible) return;
+		if (!ball) return;
 	  
 		const touchX = e.touches[0].clientX;
 		const screenCenter = window.innerWidth / 2;
@@ -680,14 +634,7 @@ function initDesktop() {
 		ball.verts[woolNodes - 1].x = newX; // move bottom node
 	  });
 	  
-  
-	// Optional: Also allow desktop-style tap for hybrid devices
-	document.addEventListener("click", () => {
-	  if (ball && ball.threeGroup.visible) {
-		const pos = getBallPos();
-		ball.update(pos.x, pos.y, pos.z);
-	  }
-	});
+
   }
   
   
@@ -768,8 +715,6 @@ function launchConfetti() {
   
 	if (selected === correctAnswer) {
 		showFeedback('Correct! 🎉', true);
-		allowCatToPlay = true;
-		ball.threeGroup.visible = true;
 		score++;
 		updateScoreDisplay();
 		if (winSound) {
@@ -781,11 +726,6 @@ function launchConfetti() {
 		  hero.clap();
 		  hero.celebrate();
 		}
-	  
-		if (ball) {
-		  ball.threeGroup.visible = true;
-		}
-	  
 		// Hide cloud if it's question 1
 		if (currentQuestionIndex === 1 && cloud) {
 		  cloud.threeGroup.visible = false;
@@ -793,7 +733,6 @@ function launchConfetti() {
 	  
 	  } else {
 		showFeedback('Nope! Try again.', false);
-		allowCatToPlay = false;
 	  
 	  const q = questions[currentQuestionIndex];
  	  if (q.type === "reorder") {
@@ -823,11 +762,6 @@ function launchConfetti() {
 	// Start listening when the user clicks
 	document.getElementById("speech-btn").onclick = () => initSpeechRecognition(q.correct);
 
-
-	if (ball) {
-		ball.threeGroup.visible = false;
-	  }
-	  
   }
   
   
@@ -891,9 +825,6 @@ function launchConfetti() {
 	  cloud.threeGroup.visible = (currentQuestionIndex === 1);
 	}
   
-	if (ball) {
-	  ball.threeGroup.visible = false;
-	}
 
 	// 🌳 Show tree only for question index 2 (third question)
 	if (tree) {
@@ -906,9 +837,6 @@ function launchConfetti() {
 	  cloud.threeGroup.visible = (currentQuestionIndex === 1);
 	}
   
-	if (ball) {
-	  ball.threeGroup.visible = false;
-	}
   }
   
 
